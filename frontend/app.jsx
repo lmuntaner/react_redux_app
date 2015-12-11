@@ -5,9 +5,13 @@ import React from 'react'
 import { Component, PropTypes } from 'react'
 const request = require('./request');
 import { combineReducers } from 'redux'
-import { createStore } from 'redux'
+import { compose, createStore } from 'redux'
 import { Provider } from 'react-redux'
 import { connect } from 'react-redux'
+// Redux DevTools store enhancers
+import { devTools, persistState } from 'redux-devtools';
+// React components for Redux DevTools
+import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';
 
 // This function return a literal object which is the action
 // that the reducer will use
@@ -44,18 +48,18 @@ const movieApp = combineReducers({
   movies
 })
 
+// New createStore
+const finalCreateStore = compose(
+  // Enables your middleware:
+  // applyMiddleware(m1, m2, m3), // any Redux middleware, e.g. redux-thunk
+  // Provides support for DevTools:
+  devTools(),
+  // Lets you write ?debug_session=<name> in address bar to persist debug sessions
+  persistState(window.location.href.match(/[?&]debug_session=([^&]+)\b/))
+)(createStore);
+
 // Creating the store with the Super Big Reducer
-let store = createStore(movieApp)
-
-// Log the initial state
-console.log('Initial state:');
-console.log(store.getState());
-
-// Every time the state changes, log it
-let unsubscribe = store.subscribe(() => {
-  console.log('New state');
-  console.log(store.getState());
-})
+const store = finalCreateStore(movieApp)
 
 // Let's add a movie so that it can be seen the first time
 // that the app loads
@@ -67,7 +71,7 @@ const MovieItem = React.createClass({
   render () {
     let { title } = this.props.movie
     return (
-      <li>{ title }</li>
+      <li>Title: { title }</li>
     )
   }
 })
@@ -117,7 +121,6 @@ const App = React.createClass({
   render() {
     // Injected by connect() call:
     const { dispatch, movies } = this.props
-    console.log('in da render of the App');
     return (
       <div>
         <MoviesList
@@ -146,14 +149,27 @@ function select(state) {
 // as a prop, and any state it needs from the global state
 let ConnectedApp = connect(select)(App)
 
-document.addEventListener("DOMContentLoaded", function () {
-  ReactDOM.render(
+class Root extends Component {
+  render() {
     // This makes our store instance available to the components below.
     // (Internally, this is done via React’s “context” feature.)
     // Provider comes from the Redux Library
-    <Provider store={store}>
-      <ConnectedApp />
-    </Provider>,
+    return (
+      <div>
+        <Provider store={store}>
+          <ConnectedApp />
+        </Provider>
+        <DebugPanel top right bottom>
+          <DevTools store={store} monitor={LogMonitor} />
+        </DebugPanel>
+      </div>
+    );
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  ReactDOM.render(
+    <Root />,
     document.getElementById('main')
   );
 });
