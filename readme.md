@@ -1,4 +1,4 @@
-# React and Redux in the simples app I could create
+# Simplest React and Redux app I could create
 
 ### Getting started
 - You need installed 'webpack' and 'http-server' globally
