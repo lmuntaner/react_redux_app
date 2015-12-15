@@ -17,7 +17,8 @@ import { addMovie, addMovieBatch, updateSearchValue } from './actions.js'
 // Reducers
 import { movies, currentSearchValue } from './reducers'
 // Components
-import { MoviesList, LiveSearch } from './components'
+import { LiveSearch } from './search_components'
+import { MoviesListContainer } from './movies_components'
 
 // Redux provides a utility to combine all the reducers in one single
 // super reducer taht will be called for every action
@@ -65,7 +66,7 @@ const App = React.createClass({
     const { dispatch, movies, currentSearchValue } = this.props
     return (
       <div>
-        <MoviesList
+        <MoviesListContainer
           movies={ movies }
           addMovie={ movie =>
             dispatch(addMovie(movie))
