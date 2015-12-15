@@ -1,5 +1,5 @@
 import React from 'react'
-const request = require('./request');
+import * as Api from './api_module.js';
 
 // React component for the single movie
 const MovieItem = React.createClass({
@@ -16,8 +16,7 @@ export const MoviesList = React.createClass({
   // When the component is about the mount calls this funciont
   // which makes the ajax request to get all the movies
   componentWillMount () {
-    let url = 'https://gizmo.wuaki.tv/v3/movies?classification_id=1&user_status=visitor';
-    request.get(url).then((response) => {
+    Api.Movies.fetchAll().then((response) => {
       this.props.addMovieBatch(response.data);
     });
   },
@@ -55,19 +54,21 @@ const InputSearchField = React.createClass({
   }
 });
 
+// React Component for the results list
+// It has an interla state calculated from the currentSearchValue passed as props
 const ResultsList = React.createClass({
   getInitialState () {
     return { results: [] }
   },
   getResults (query) {
-    let url = `https://gizmo.wuaki.tv/v3/movies?classification_id=1&query=${query}`;
-    request.get(url).then((response) => {
+    Api.Movies.search(query).then((response) => {
       this.setState({ results: response.data });
     });
   },
+  // This method is called everytime a new props is passed
   componentWillReceiveProps (newProps) {
     let query = newProps.currentSearchValue;
-    if (query == '') {
+    if (query.length < 3) {
       this.setState({ results: [] });
     } else {
       this.getResults(query);

@@ -34,12 +34,14 @@ const movieApp = combineReducers({
 })
 
 // New createStore
+// This is to use the dev tools that you cas see as a column at the right side
 const finalCreateStore = compose(
   // Enables your middleware:
   // applyMiddleware(m1, m2, m3), // any Redux middleware, e.g. redux-thunk
   // Provides support for DevTools:
   devTools(),
   // Lets you write ?debug_session=<name> in address bar to persist debug sessions
+  // only for debugging purposes
   persistState(window.location.href.match(/[?&]debug_session=([^&]+)\b/))
 )(createStore);
 
