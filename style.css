@@ -1,0 +1,10 @@
+.movie-list-container {
+  width: 40%;
+  display: inline-block;
+}
+
+.live-search-container {
+  width: 40%;
+  display: inline-block;
+  vertical-align: top;
+}

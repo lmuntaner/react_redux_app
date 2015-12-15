@@ -3,7 +3,7 @@
 import ReactDOM from 'react-dom';
 import React from 'react'
 import { Component, PropTypes } from 'react'
-const request = require('./request');
+// const request = require('./request');
 import { combineReducers } from 'redux'
 import { compose, createStore } from 'redux'
 import { Provider } from 'react-redux'
@@ -12,28 +12,12 @@ import { connect } from 'react-redux'
 import { devTools, persistState } from 'redux-devtools';
 // React components for Redux DevTools
 import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';
-
-// This function return a literal object which is the action
-// that the reducer will use
-function addMovie(movie) {
-  return {
-    type: 'add_movie',
-    movie: movie
-  }
-}
-
-// Reducer, which is the responsible for handling the actions
-// since we are using #combineReducers, the state that this
-// reducer will receive is already under the movies key in the
-// general state. That is why it starts by default to an empty array
-function movies(state = [], action) {
-  switch (action.type) {
-    case 'add_movie':
-      return [...state, action.movie]
-    default:
-      return state
-  }
-}
+// Actions
+import { addMovie, addMovieBatch, updateSearchValue } from './actions.js'
+// Reducers
+import { movies, currentSearchValue } from './reducers'
+// Components
+import { MoviesList, LiveSearch } from './components'
 
 // Redux provides a utility to combine all the reducers in one single
 // super reducer taht will be called for every action
@@ -45,7 +29,8 @@ function movies(state = [], action) {
 // }
 // #createStore is completely equivalent to the code above
 const movieApp = combineReducers({
-  movies
+  movies,
+  currentSearchValue
 })
 
 // New createStore
@@ -66,51 +51,6 @@ const store = finalCreateStore(movieApp)
 let firstMovie = {title: 'First movie', numerical_id: 1};
 store.dispatch(addMovie(firstMovie));
 
-// React component for the single movie
-const MovieItem = React.createClass({
-  render () {
-    let { title } = this.props.movie
-    return (
-      <li>Title: { title }</li>
-    )
-  }
-})
-
-// React component for the whole list
-const MoviesList = React.createClass({
-  // When the component is about the mount calls this funciont
-  // which makes the ajax request to get all the movies
-  componentWillMount () {
-    let url = 'https://gizmo.wuaki.tv/v3/movies?classification_id=1&user_status=visitor';
-    request.get(url).then((response) => {
-      // TODO: Create an action that takes an array of movies and updates the
-      // state, rather than an actio per movie.
-      // For now this is fun!
-      response.data.forEach( (movie) => {
-        // We use the function that is provided as props to add the movie
-        // to the state.
-        // This function is not the same as the addMovie function at the
-        // beginning that creates the action
-        this.props.addMovie(movie);
-      });
-    });
-  },
-  render () {
-    let moviesComponents = this.props.movies.map((movie) => {
-      // We pass the key and the movie as props to the child component
-      return <MovieItem key={ movie.numerical_id } movie={ movie }/>
-    });
-    return(
-      <div>
-        <h2>List of movies:</h2>
-        <ul>
-          { moviesComponents }
-        </ul>
-      </div>
-    );
-  }
-});
-
 // This is the parent React Component that will get the state as props
 // from the Provider
 const App = React.createClass({
@@ -120,14 +60,22 @@ const App = React.createClass({
   // },
   render() {
     // Injected by connect() call:
-    const { dispatch, movies } = this.props
+    const { dispatch, movies, currentSearchValue } = this.props
     return (
       <div>
         <MoviesList
           movies={ movies }
           addMovie={ movie =>
             dispatch(addMovie(movie))
-          } />
+          }
+          addMovieBatch= { movies =>
+            dispatch(addMovieBatch(movies))
+          }/>
+        <LiveSearch
+          currentSearchValue={ currentSearchValue }
+          updateSearchValue= { newValue =>
+            dispatch(updateSearchValue(newValue))
+          }/>
       </div>
     )
   }
@@ -149,7 +97,8 @@ function select(state) {
 // as a prop, and any state it needs from the global state
 let ConnectedApp = connect(select)(App)
 
-class Root extends Component {
+// class Root extends Component {
+const Root = React.createClass({
   render() {
     // This makes our store instance available to the components below.
     // (Internally, this is done via React’s “context” feature.)
@@ -165,7 +114,7 @@ class Root extends Component {
       </div>
     );
   }
-}
+})
 
 document.addEventListener("DOMContentLoaded", function () {
   ReactDOM.render(
