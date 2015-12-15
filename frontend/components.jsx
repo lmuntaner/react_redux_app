@@ -54,9 +54,9 @@ const InputSearchField = React.createClass({
   }
 });
 
-// React Component for the results list
-// It has an interla state calculated from the currentSearchValue passed as props
-const ResultsList = React.createClass({
+// React Component Container for the results list
+// It has an interal state calculated from the currentSearchValue passed as props
+const ResultsListContainer = React.createClass({
   getInitialState () {
     return { results: [] }
   },
@@ -77,9 +77,21 @@ const ResultsList = React.createClass({
   render () {
     return(
       <div>
+        <ResultsList results={ this.state.results } />
+      </div>
+    )
+  }
+})
+
+// This is the presentational react component that renders the list
+// there is no behavior in this one
+const ResultsList = React.createClass({
+  render () {
+    return(
+      <div>
         <h4>Results:</h4>
         <ul>
-          { this.state.results.map( (movie) => {
+          { this.props.results.map( (movie) => {
               return <li key={ movie.numerical_id }>{ movie.title }</li>
             })
           }
@@ -89,6 +101,7 @@ const ResultsList = React.createClass({
   }
 })
 
+// React component that wraps the input and the results list components
 export const LiveSearch = React.createClass({
   render () {
     let { currentSearchValue, updateSearchValue, newSearchResults } = this.props;
@@ -99,7 +112,7 @@ export const LiveSearch = React.createClass({
           currentSearchValue={ currentSearchValue }
           updateSearchValue={ updateSearchValue }
         />
-        <ResultsList currentSearchValue={ currentSearchValue }/>
+        <ResultsListContainer currentSearchValue={ currentSearchValue }/>
       </div>
     )
   }
